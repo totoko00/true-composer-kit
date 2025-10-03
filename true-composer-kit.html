@@ -413,6 +413,12 @@
       outline: 2px solid rgba(255, 255, 255, 0.8);
     }
 
+    .note-token.playing {
+      background: linear-gradient(135deg, rgba(51, 209, 160, 0.95), rgba(91, 141, 239, 0.9));
+      box-shadow: 0 16px 32px rgba(51, 209, 160, 0.35);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
     .suggestion-card {
       padding: 16px;
       border-radius: var(--radius-md);
@@ -1847,6 +1853,8 @@
 
           const beatWidth = gridRect.width / 16;
           const pitchHeight = gridRect.height / 12;
+          const quantize = Math.max(project.settings.quantize, 1);
+          const secondsPerStep = (60 / project.settings.tempo) / (quantize / 4);
 
           project.melody.forEach((note) => {
             const el = document.createElement('div');
@@ -1860,11 +1868,21 @@
             el.style.top = `${row * pitchHeight}px`;
             el.style.width = `${Math.max(beatWidth * lengthBeats, 8)}px`;
             el.style.height = `${pitchHeight - 4}px`;
+            const startSeconds = startBeats * secondsPerStep;
+            const endSeconds = startSeconds + lengthBeats * secondsPerStep;
+            el.dataset.startSeconds = String(startSeconds);
+            el.dataset.endSeconds = String(endSeconds);
             if (note.id === selectedNoteId) el.classList.add('selected');
             el.addEventListener('click', (event) => {
               event.stopPropagation();
-              selectedNoteId = note.id;
-              renderPianoRoll(Store.getProject());
+              if (selectedNoteId === note.id) {
+                selectedNoteId = null;
+                Store.deleteNote(note.id);
+                MessageLog.add(`${MusicTheory.midiToNoteName(note.pitch)} のノートを削除しました`);
+              } else {
+                selectedNoteId = note.id;
+                renderPianoRoll(Store.getProject());
+              }
             });
             layer.appendChild(el);
           });
@@ -2118,10 +2136,25 @@
 
         const updatePlayhead = (project) => {
           const barDuration = Sequencer.getBarDuration(project.settings.tempo);
-          const now = AudioEngine.isPlaying() ? (performance.now() - window.__tck_playStart) / 1000 : 0;
+          const isPlaying = AudioEngine.isPlaying();
+          const now = isPlaying ? (performance.now() - window.__tck_playStart) / 1000 : 0;
           const bar = Math.floor(now / barDuration) + 1;
           const beat = Math.floor((now % barDuration) / (barDuration / 4)) + 1;
           playheadTime.textContent = `Bar ${Math.min(bar, project.chords.length)} • Beat ${beat}`;
+          const tokens = pianoRoll.querySelectorAll('.note-token');
+          tokens.forEach((token) => {
+            const startSeconds = parseFloat(token.dataset.startSeconds || 'NaN');
+            const endSeconds = parseFloat(token.dataset.endSeconds || 'NaN');
+            if (!isPlaying || Number.isNaN(startSeconds) || Number.isNaN(endSeconds)) {
+              token.classList.remove('playing');
+              return;
+            }
+            if (now >= startSeconds && now <= endSeconds) {
+              token.classList.add('playing');
+            } else {
+              token.classList.remove('playing');
+            }
+          });
         };
 
         const initPlayheadTimer = () => {
