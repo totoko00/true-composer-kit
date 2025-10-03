@@ -379,19 +379,20 @@
     }
 
     .piano-roll {
+      --piano-roll-rows: 60;
       display: grid;
       grid-template-columns: 68px 1fr;
       position: relative;
       background: rgba(255, 255, 255, 0.03);
       border-radius: var(--radius-lg);
       border: 1px solid var(--grid-line);
-      height: 360px;
+      height: clamp(360px, calc(8px * var(--piano-roll-rows)), 560px);
       overflow: hidden;
     }
 
     .piano-roll-labels {
       display: grid;
-      grid-template-rows: repeat(12, 1fr);
+      grid-template-rows: repeat(var(--piano-roll-rows), 1fr);
       background: rgba(255, 255, 255, 0.02);
       border-right: 1px solid var(--grid-line);
     }
@@ -434,10 +435,10 @@
       inset: 0;
       display: grid;
       grid-template-columns: repeat(16, minmax(0, 1fr));
-      grid-template-rows: repeat(12, 1fr);
+      grid-template-rows: repeat(var(--piano-roll-rows), 1fr);
       background-image: linear-gradient(0deg, transparent 95%, rgba(255, 255, 255, 0.04) 100%),
         linear-gradient(90deg, transparent 95%, rgba(255, 255, 255, 0.04) 100%);
-      background-size: 100% calc(100% / 12), calc(100% / 16) 100%;
+      background-size: 100% calc(100% / var(--piano-roll-rows)), calc(100% / 16) 100%;
       background-position: center;
     }
 
@@ -1781,6 +1782,14 @@
         const pianoRoll = document.getElementById('piano-roll');
         const playheadTime = document.getElementById('playhead-time');
 
+        const MIN_PIANO_PITCH = 24; // C1
+        const MAX_PIANO_PITCH = 83; // B5
+        const TOTAL_PIANO_PITCHES = MAX_PIANO_PITCH - MIN_PIANO_PITCH + 1;
+
+        if (pianoRoll) {
+          pianoRoll.style.setProperty('--piano-roll-rows', TOTAL_PIANO_PITCHES);
+        }
+
         const chordEditors = new Map();
         let selectedNoteId = null;
         let activeResize = null;
@@ -2058,12 +2067,16 @@
             selectedNoteId = null;
           }
 
+          const minPitch = MIN_PIANO_PITCH;
+          const maxPitch = MAX_PIANO_PITCH;
+          const totalPitches = TOTAL_PIANO_PITCHES;
+
           const viewport = pianoRoll.querySelector('.piano-roll-viewport');
           const labelsEl = pianoRoll.querySelector('.piano-roll-labels');
           if (!viewport) return;
 
           if (labelsEl) {
-            const pitches = Array.from({ length: 12 }, (_, index) => 71 - index);
+            const pitches = Array.from({ length: totalPitches }, (_, index) => maxPitch - index);
             labelsEl.innerHTML = '';
             pitches.forEach((midi) => {
               const label = document.createElement('div');
@@ -2083,12 +2096,10 @@
 
           const viewportRect = viewport.getBoundingClientRect();
           const beatWidth = viewportRect.width / 16 || 1;
-          const pitchHeight = viewportRect.height / 12 || 1;
+          const pitchHeight = viewportRect.height / totalPitches || 1;
           const quantizeValue = Math.max(project.settings.quantize, 1);
           const quantizeStep = Math.max(1, Math.round(16 / quantizeValue));
           const secondsPerStep = (60 / project.settings.tempo) / (quantizeValue / 4);
-          const minPitch = 60;
-          const maxPitch = 71;
 
           project.melody.forEach((note) => {
             const el = document.createElement('div');
@@ -2098,14 +2109,15 @@
             el.dataset.length = String(note.length);
             el.dataset.pitch = String(note.pitch);
             const clampedPitch = Utils.clamp(note.pitch, minPitch, maxPitch);
-            const row = Utils.clamp(maxPitch - clampedPitch, 0, 11);
+            const row = Utils.clamp(maxPitch - clampedPitch, 0, totalPitches - 1);
             const startBeats = Utils.clamp(note.start, 0, 15);
             const maxLength = 16 - startBeats;
             const lengthBeats = Utils.clamp(note.length, 1, maxLength);
             el.style.left = `${startBeats * beatWidth}px`;
             el.style.top = `${row * pitchHeight}px`;
             el.style.width = `${Math.max(beatWidth * lengthBeats, 8)}px`;
-            el.style.height = `${Math.max(pitchHeight - 4, 12)}px`;
+            const noteHeight = Math.max(pitchHeight - 4, Math.min(pitchHeight, 12));
+            el.style.height = `${noteHeight}px`;
             const startSeconds = startBeats * secondsPerStep;
             const endSeconds = startSeconds + lengthBeats * secondsPerStep;
             el.dataset.startSeconds = String(startSeconds);
@@ -2152,10 +2164,10 @@
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
             const beatWidthLocal = rect.width / 16 || 1;
-            const pitchHeightLocal = rect.height / 12 || 1;
+            const pitchHeightLocal = rect.height / totalPitches || 1;
             let startBeat = Math.round((x / beatWidthLocal) / quantizeStep) * quantizeStep;
             startBeat = Utils.clamp(startBeat, 0, 16 - quantizeStep);
-            const pitchIndex = Utils.clamp(Math.floor(y / pitchHeightLocal), 0, 11);
+            const pitchIndex = Utils.clamp(Math.floor(y / pitchHeightLocal), 0, totalPitches - 1);
             const pitch = maxPitch - pitchIndex;
             const note = {
               start: startBeat,
@@ -2181,10 +2193,10 @@
             selectedNoteId = null;
           }
           if (event.key === 'ArrowUp') {
-            Store.moveNote(note.id, { pitch: Utils.clamp(note.pitch + 1, 36, 96) });
+            Store.moveNote(note.id, { pitch: Utils.clamp(note.pitch + 1, MIN_PIANO_PITCH, MAX_PIANO_PITCH) });
           }
           if (event.key === 'ArrowDown') {
-            Store.moveNote(note.id, { pitch: Utils.clamp(note.pitch - 1, 36, 96) });
+            Store.moveNote(note.id, { pitch: Utils.clamp(note.pitch - 1, MIN_PIANO_PITCH, MAX_PIANO_PITCH) });
           }
           if (event.key === 'ArrowRight') {
             Store.moveNote(note.id, { length: Math.min(note.length + 1, 8) });
