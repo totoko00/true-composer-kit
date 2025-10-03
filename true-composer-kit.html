@@ -379,12 +379,54 @@
     }
 
     .piano-roll {
+      display: grid;
+      grid-template-columns: 68px 1fr;
       position: relative;
       background: rgba(255, 255, 255, 0.03);
       border-radius: var(--radius-lg);
       border: 1px solid var(--grid-line);
       height: 240px;
       overflow: hidden;
+    }
+
+    .piano-roll-labels {
+      display: grid;
+      grid-template-rows: repeat(12, 1fr);
+      background: rgba(255, 255, 255, 0.02);
+      border-right: 1px solid var(--grid-line);
+    }
+
+    .piano-roll-label {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.72rem;
+      color: var(--text-2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .piano-roll-label:last-child {
+      border-bottom: none;
+    }
+
+    .piano-roll-label strong {
+      font-size: 0.82rem;
+      color: var(--text-0);
+      letter-spacing: 0.04em;
+    }
+
+    .piano-roll-label span {
+      font-size: 0.66rem;
+      color: var(--text-2);
+      opacity: 0.75;
+    }
+
+    .piano-roll-viewport {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
     }
 
     .piano-roll-grid {
@@ -407,6 +449,13 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       cursor: pointer;
       transition: transform var(--transition), box-shadow var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--text-0);
+      padding: 0 16px;
+      user-select: none;
     }
 
     .note-token.selected {
@@ -417,6 +466,38 @@
       background: linear-gradient(135deg, rgba(51, 209, 160, 0.95), rgba(91, 141, 239, 0.9));
       box-shadow: 0 16px 32px rgba(51, 209, 160, 0.35);
       border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .note-token .note-label {
+      pointer-events: none;
+    }
+
+    .note-token .resize-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      opacity: 0;
+      transition: opacity var(--transition);
+      cursor: ew-resize;
+    }
+
+    .note-token:hover .resize-handle,
+    .note-token.selected .resize-handle {
+      opacity: 1;
+    }
+
+    .note-token .resize-handle.left {
+      left: 0;
+      border-top-left-radius: var(--radius-sm);
+      border-bottom-left-radius: var(--radius-sm);
+    }
+
+    .note-token .resize-handle.right {
+      right: 0;
+      border-top-right-radius: var(--radius-sm);
+      border-bottom-right-radius: var(--radius-sm);
     }
 
     .suggestion-card {
@@ -731,7 +812,10 @@
         <section>
           <h3>Piano Roll</h3>
           <div class="piano-roll" id="piano-roll">
-            <div class="piano-roll-grid"></div>
+            <div class="piano-roll-labels"></div>
+            <div class="piano-roll-viewport">
+              <div class="piano-roll-grid"></div>
+            </div>
           </div>
         </section>
       </div>
@@ -831,6 +915,21 @@
           'G#': 'Ab',
         };
 
+        const SOLFEGE_MAP = {
+          C: 'ド',
+          'C#': 'ド#',
+          D: 'レ',
+          'D#': 'レ#',
+          E: 'ミ',
+          F: 'ファ',
+          'F#': 'ファ#',
+          G: 'ソ',
+          'G#': 'ソ#',
+          A: 'ラ',
+          'A#': 'ラ#',
+          B: 'シ',
+        };
+
         const SCALE_PATTERNS = {
           major: [2, 2, 1, 2, 2, 2, 1],
           natural_minor: [2, 1, 2, 2, 1, 2, 2],
@@ -901,6 +1000,12 @@
             if (flat) return `${flat[0]}${octave}`;
           }
           return `${note}${octave}`;
+        };
+
+        const toSolfege = (midi) => {
+          const name = midiToNoteName(midi);
+          const pitch = name.replace(/\d+$/, '');
+          return SOLFEGE_MAP[pitch] || pitch;
         };
 
         const noteNameToMidi = (noteName) => {
@@ -1008,6 +1113,7 @@
           CHORD_ALIASES,
           noteNameToMidi,
           midiToNoteName,
+          toSolfege,
           getScaleNotes,
           parseChord,
           getDiatonicChords,
@@ -1677,6 +1783,103 @@
 
         const chordEditors = new Map();
         let selectedNoteId = null;
+        let activeResize = null;
+
+        const updateNoteSelection = () => {
+          const tokens = pianoRoll.querySelectorAll('.note-token');
+          tokens.forEach((token) => {
+            token.classList.toggle('selected', token.dataset.id === selectedNoteId);
+          });
+        };
+
+        const handleResizeMove = (event) => {
+          if (!activeResize) return;
+          event.preventDefault();
+          const deltaBeats = (event.clientX - activeResize.startX) / activeResize.beatWidth;
+          let newStart = activeResize.initialStart;
+          let newLength = activeResize.initialLength;
+
+          if (activeResize.direction === 'right') {
+            const raw = activeResize.initialLength + deltaBeats;
+            newLength = Math.round(raw / activeResize.quantizeUnit) * activeResize.quantizeUnit;
+            const maxLength = 16 - activeResize.initialStart;
+            const maxSnapped = Math.floor(maxLength / activeResize.quantizeUnit) * activeResize.quantizeUnit;
+            const minLength = Math.max(1, Math.min(activeResize.quantizeUnit, maxLength));
+            const upperBound = Math.max(minLength, maxSnapped > 0 ? maxSnapped : maxLength);
+            newLength = Utils.clamp(newLength, minLength, upperBound);
+          } else {
+            const rawStart = activeResize.initialStart + deltaBeats;
+            newStart = Math.round(rawStart / activeResize.quantizeUnit) * activeResize.quantizeUnit;
+            const maxStart = activeResize.initialStart + activeResize.initialLength - activeResize.quantizeUnit;
+            newStart = Utils.clamp(newStart, 0, Math.max(0, maxStart));
+            newLength = activeResize.initialStart + activeResize.initialLength - newStart;
+            const maxLength = 16 - newStart;
+            const maxSnapped = Math.floor(maxLength / activeResize.quantizeUnit) * activeResize.quantizeUnit;
+            const minLength = Math.max(1, Math.min(activeResize.quantizeUnit, maxLength));
+            const upperBound = Math.max(minLength, maxSnapped > 0 ? maxSnapped : maxLength);
+            newLength = Utils.clamp(newLength, minLength, upperBound);
+          }
+
+          newStart = Math.round(newStart);
+          newLength = Math.max(1, Math.round(newLength));
+
+          activeResize.currentStart = newStart;
+          activeResize.currentLength = newLength;
+
+          if (activeResize.noteEl) {
+            const widthPx = Math.max(newLength * activeResize.beatWidth, 8);
+            const leftPx = newStart * activeResize.beatWidth;
+            activeResize.noteEl.style.width = `${widthPx}px`;
+            activeResize.noteEl.style.left = `${leftPx}px`;
+            activeResize.noteEl.dataset.start = String(newStart);
+            activeResize.noteEl.dataset.length = String(newLength);
+          }
+        };
+
+        const finalizeResize = () => {
+          if (!activeResize) return;
+          const { noteId, currentStart, currentLength, initialStart, initialLength } = activeResize;
+          window.removeEventListener('pointermove', handleResizeMove);
+          window.removeEventListener('pointerup', finalizeResize);
+          window.removeEventListener('pointercancel', finalizeResize);
+          activeResize = null;
+          if (currentStart === initialStart && currentLength === initialLength) return;
+          selectedNoteId = noteId;
+          Store.moveNote(noteId, { start: currentStart, length: currentLength });
+        };
+
+        const beginResize = (event, noteId, direction) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const viewport = pianoRoll.querySelector('.piano-roll-viewport');
+          if (!viewport) return;
+          const rect = viewport.getBoundingClientRect();
+          const beatWidth = rect.width / 16;
+          if (!beatWidth) return;
+          const project = Store.getProject();
+          const note = project.melody.find((n) => n.id === noteId);
+          if (!note) return;
+          const quantizeValue = Math.max(project.settings.quantize, 1);
+          const quantizeUnit = Math.max(1, Math.round(16 / quantizeValue));
+          const noteEl = viewport.querySelector(`.note-token[data-id="${noteId}"]`);
+          selectedNoteId = noteId;
+          updateNoteSelection();
+          activeResize = {
+            noteId,
+            direction,
+            initialStart: note.start,
+            initialLength: note.length,
+            currentStart: note.start,
+            currentLength: note.length,
+            startX: event.clientX,
+            beatWidth,
+            quantizeUnit,
+            noteEl,
+          };
+          window.addEventListener('pointermove', handleResizeMove);
+          window.addEventListener('pointerup', finalizeResize);
+          window.addEventListener('pointercancel', finalizeResize);
+        };
 
         const KEY_OPTIONS = [
           'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'
@@ -1839,49 +2042,95 @@
         };
 
         const renderPianoRoll = (project) => {
+          if (!pianoRoll) return;
           if (selectedNoteId && !project.melody.some((note) => note.id === selectedNoteId)) {
             selectedNoteId = null;
           }
-          const gridRect = pianoRoll.getBoundingClientRect();
-          const noteLayer = pianoRoll.querySelector('.note-layer');
-          if (noteLayer) noteLayer.remove();
+
+          const viewport = pianoRoll.querySelector('.piano-roll-viewport');
+          const labelsEl = pianoRoll.querySelector('.piano-roll-labels');
+          if (!viewport) return;
+
+          if (labelsEl) {
+            const pitches = Array.from({ length: 12 }, (_, index) => 71 - index);
+            labelsEl.innerHTML = '';
+            pitches.forEach((midi) => {
+              const label = document.createElement('div');
+              label.className = 'piano-roll-label';
+              label.innerHTML = `<strong>${MusicTheory.toSolfege(midi)}</strong><span>${MusicTheory.midiToNoteName(midi)}</span>`;
+              labelsEl.appendChild(label);
+            });
+          }
+
+          const existingLayer = viewport.querySelector('.note-layer');
+          if (existingLayer) existingLayer.remove();
           const layer = document.createElement('div');
           layer.className = 'note-layer';
           layer.style.position = 'absolute';
           layer.style.inset = '0';
-          pianoRoll.appendChild(layer);
+          viewport.appendChild(layer);
 
-          const beatWidth = gridRect.width / 16;
-          const pitchHeight = gridRect.height / 12;
-          const quantize = Math.max(project.settings.quantize, 1);
-          const secondsPerStep = (60 / project.settings.tempo) / (quantize / 4);
+          const viewportRect = viewport.getBoundingClientRect();
+          const beatWidth = viewportRect.width / 16 || 1;
+          const pitchHeight = viewportRect.height / 12 || 1;
+          const quantizeValue = Math.max(project.settings.quantize, 1);
+          const quantizeStep = Math.max(1, Math.round(16 / quantizeValue));
+          const secondsPerStep = (60 / project.settings.tempo) / (quantizeValue / 4);
+          const minPitch = 60;
+          const maxPitch = 71;
 
           project.melody.forEach((note) => {
             const el = document.createElement('div');
             el.className = 'note-token';
             el.dataset.id = note.id;
-            const pitchIndex = Utils.clamp(note.pitch - 60, -12, 12); // middle C reference
+            el.dataset.start = String(note.start);
+            el.dataset.length = String(note.length);
+            el.dataset.pitch = String(note.pitch);
+            const clampedPitch = Utils.clamp(note.pitch, minPitch, maxPitch);
+            const row = Utils.clamp(maxPitch - clampedPitch, 0, 11);
             const startBeats = Utils.clamp(note.start, 0, 15);
-            const lengthBeats = Utils.clamp(note.length, 1, 16 - startBeats);
+            const maxLength = 16 - startBeats;
+            const lengthBeats = Utils.clamp(note.length, 1, maxLength);
             el.style.left = `${startBeats * beatWidth}px`;
-            const row = Utils.clamp(11 - pitchIndex, 0, 11);
             el.style.top = `${row * pitchHeight}px`;
             el.style.width = `${Math.max(beatWidth * lengthBeats, 8)}px`;
-            el.style.height = `${pitchHeight - 4}px`;
+            el.style.height = `${Math.max(pitchHeight - 4, 12)}px`;
             const startSeconds = startBeats * secondsPerStep;
             const endSeconds = startSeconds + lengthBeats * secondsPerStep;
             el.dataset.startSeconds = String(startSeconds);
             el.dataset.endSeconds = String(endSeconds);
+            el.setAttribute('title', `${MusicTheory.midiToNoteName(note.pitch)} (${MusicTheory.toSolfege(note.pitch)})`);
             if (note.id === selectedNoteId) el.classList.add('selected');
+
+            const label = document.createElement('span');
+            label.className = 'note-label';
+            label.textContent = MusicTheory.toSolfege(note.pitch);
+            el.appendChild(label);
+
+            ['left', 'right'].forEach((direction) => {
+              const handle = document.createElement('div');
+              handle.className = `resize-handle ${direction}`;
+              handle.dataset.direction = direction;
+              handle.addEventListener('pointerdown', (event) => beginResize(event, note.id, direction));
+              el.appendChild(handle);
+            });
+
+            el.addEventListener('pointerdown', (event) => {
+              if (event.target.closest('.resize-handle')) return;
+              selectedNoteId = note.id;
+              updateNoteSelection();
+            });
+
             el.addEventListener('click', (event) => {
               event.stopPropagation();
+              if (event.target.closest('.resize-handle')) return;
               if (selectedNoteId === note.id) {
                 selectedNoteId = null;
                 Store.deleteNote(note.id);
-                MessageLog.add(`${MusicTheory.midiToNoteName(note.pitch)} のノートを削除しました`);
+                MessageLog.add(`${MusicTheory.midiToNoteName(note.pitch)} (${MusicTheory.toSolfege(note.pitch)}) のノートを削除しました`);
               } else {
                 selectedNoteId = note.id;
-                renderPianoRoll(Store.getProject());
+                updateNoteSelection();
               }
             });
             layer.appendChild(el);
@@ -1891,19 +2140,23 @@
             const rect = layer.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
-            const beatWidthLocal = rect.width / 16;
-            const pitchHeightLocal = rect.height / 12;
-            const startBeat = Math.floor(x / beatWidthLocal);
-            const pitchIndex = 11 - Math.floor(y / pitchHeightLocal);
-            const pitch = 60 + pitchIndex;
+            const beatWidthLocal = rect.width / 16 || 1;
+            const pitchHeightLocal = rect.height / 12 || 1;
+            let startBeat = Math.round((x / beatWidthLocal) / quantizeStep) * quantizeStep;
+            startBeat = Utils.clamp(startBeat, 0, 16 - quantizeStep);
+            const pitchIndex = Utils.clamp(Math.floor(y / pitchHeightLocal), 0, 11);
+            const pitch = maxPitch - pitchIndex;
             const note = {
               start: startBeat,
-              length: 1,
+              length: quantizeStep,
               pitch,
             };
+            selectedNoteId = null;
             Store.addNote(note);
-            MessageLog.add(`${MusicTheory.midiToNoteName(pitch)} のノートを追加しました`);
+            MessageLog.add(`${MusicTheory.midiToNoteName(pitch)} (${MusicTheory.toSolfege(pitch)}) のノートを追加しました`);
           });
+
+          updateNoteSelection();
         };
 
         const handleKeyboardShortcuts = (event) => {
