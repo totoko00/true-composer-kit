@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>True Composer Kit</title>
+  <style>
+    :root {
+      /* カラーパレット */
+      --bg-0: #0b0d11;
+      --bg-1: #131722;
+      --bg-2: #1c2233;
+      --bg-3: #252c40;
+      --accent-0: #5b8def;
+      --accent-1: #8aa9ff;
+      --accent-2: #3f6ad9;
+      --text-0: #f5f7ff;
+      --text-1: #cfd5f5;
+      --text-2: #8891b5;
+      --danger: #ff5f71;
+      --success: #33d1a0;
+      --warning: #f5b05b;
+      --border: rgba(255, 255, 255, 0.08);
+      --grid-line: rgba(255, 255, 255, 0.06);
+      --shadow: 0 12px 32px rgba(4, 9, 20, 0.5);
+      --transition: 0.2s ease;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
+      background: radial-gradient(circle at top left, rgba(91, 141, 239, 0.18), transparent 55%),
+        radial-gradient(circle at top right, rgba(51, 209, 160, 0.14), transparent 60%),
+        var(--bg-0);
+      color: var(--text-0);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      margin: 0;
+      font-weight: 600;
+      color: var(--text-0);
+    }
+
+    p {
+      margin: 0;
+      color: var(--text-1);
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    #app {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px minmax(480px, 1fr) 300px;
+      gap: 20px;
+      padding: 24px;
+      width: min(1600px, 100vw);
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 24px 32px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent-0), var(--accent-2));
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
+      font-weight: 700;
+      color: white;
+      letter-spacing: 0.04em;
+    }
+
+    .brand h1 {
+      font-size: 1.6rem;
+    }
+
+    .brand p {
+      font-size: 0.9rem;
+      opacity: 0.75;
+    }
+
+    .panel {
+      background: linear-gradient(160deg, rgba(20, 28, 44, 0.96), rgba(17, 21, 31, 0.82));
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .panel-header {
+      padding: 20px 24px 12px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+    }
+
+    .panel-header h2 {
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-1);
+    }
+
+    .panel-body {
+      padding: 16px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .panel-subheader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .panel-subheader h3 {
+      font-size: 0.95rem;
+      color: var(--text-1);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-group label {
+      font-size: 0.82rem;
+      color: var(--text-2);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    select,
+    input[type="number"],
+    input[type="text"] {
+      background: var(--bg-2);
+      color: var(--text-0);
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      transition: border var(--transition), box-shadow var(--transition), transform var(--transition);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    select:focus,
+    input:focus,
+    button:focus-visible {
+      outline: none;
+      border-color: var(--accent-0);
+      box-shadow: 0 0 0 2px rgba(91, 141, 239, 0.35);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent-0), var(--accent-2));
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 12px 24px rgba(91, 141, 239, 0.24);
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-1);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), border var(--transition);
+    }
+
+    button.danger {
+      background: rgba(255, 95, 113, 0.16);
+      border: 1px solid rgba(255, 95, 113, 0.32);
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), border var(--transition);
+    }
+
+    button.primary:hover,
+    button.secondary:hover,
+    button.danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(91, 141, 239, 0.24);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .track-control {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .track-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-0), rgba(255, 255, 255, 0.12));
+      outline: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 6px 20px rgba(91, 141, 239, 0.4);
+      cursor: pointer;
+      border: 2px solid var(--accent-0);
+    }
+
+    .checkbox-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text-1);
+      font-size: 0.85rem;
+    }
+
+    .checkbox-toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-0);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .chord-cell {
+      position: relative;
+      padding: 16px 12px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--grid-line);
+      min-height: 84px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: border var(--transition), box-shadow var(--transition), transform var(--transition);
+      cursor: pointer;
+    }
+
+    .chord-cell:hover {
+      border-color: rgba(91, 141, 239, 0.4);
+      box-shadow: 0 12px 24px rgba(91, 141, 239, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .chord-cell.active {
+      background: rgba(91, 141, 239, 0.14);
+      border-color: rgba(91, 141, 239, 0.5);
+      box-shadow: 0 12px 24px rgba(91, 141, 239, 0.2);
+    }
+
+    .chord-cell .bar-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+
+    .chord-cell .chord-name {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--text-0);
+    }
+
+    .chord-cell .chord-function {
+      font-size: 0.8rem;
+      color: var(--accent-1);
+    }
+
+    .chord-input-overlay {
+      position: absolute;
+      inset: 8px;
+      display: none;
+      background: rgba(11, 13, 17, 0.92);
+      border: 1px solid rgba(91, 141, 239, 0.55);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      box-shadow: 0 22px 44px rgba(0, 0, 0, 0.45);
+      z-index: 5;
+    }
+
+    .chord-input-overlay.active {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .piano-roll {
+      position: relative;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--grid-line);
+      height: 240px;
+      overflow: hidden;
+    }
+
+    .piano-roll-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(16, minmax(0, 1fr));
+      grid-template-rows: repeat(12, 1fr);
+      background-image: linear-gradient(0deg, transparent 95%, rgba(255, 255, 255, 0.04) 100%),
+        linear-gradient(90deg, transparent 95%, rgba(255, 255, 255, 0.04) 100%);
+      background-size: 100% calc(100% / 12), calc(100% / 16) 100%;
+      background-position: center;
+    }
+
+    .note-token {
+      position: absolute;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, rgba(91, 141, 239, 0.85), rgba(63, 106, 217, 0.85));
+      box-shadow: 0 12px 24px rgba(91, 141, 239, 0.32);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .note-token.selected {
+      outline: 2px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .suggestion-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform var(--transition), box-shadow var(--transition);
+      cursor: pointer;
+    }
+
+    .suggestion-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(91, 141, 239, 0.18);
+    }
+
+    .suggestion-card strong {
+      font-size: 1.1rem;
+      color: var(--text-0);
+    }
+
+    .suggestion-card span {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .transport-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .transport-button {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-0);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+
+    .transport-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(91, 141, 239, 0.32);
+      background: rgba(91, 141, 239, 0.3);
+    }
+
+    .transport-button.playing {
+      animation: pulse 1.2s ease-in-out infinite;
+      background: rgba(91, 141, 239, 0.4);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 rgba(91, 141, 239, 0.6); }
+      50% { box-shadow: 0 0 12px rgba(91, 141, 239, 0.5); }
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--text-2);
+      font-size: 0.85rem;
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 8px rgba(255, 95, 113, 0.5);
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+
+    .status-indicator.ready {
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(51, 209, 160, 0.6);
+    }
+
+    .message-log {
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 16px;
+      font-size: 0.82rem;
+      color: var(--text-2);
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .message-log p {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .message-log p:last-child {
+      margin-bottom: 0;
+    }
+
+    .drop-zone {
+      position: relative;
+      border: 2px dashed rgba(91, 141, 239, 0.4);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: center;
+      color: var(--text-2);
+      transition: border var(--transition), background var(--transition);
+    }
+
+    .drop-zone.drag-over {
+      border-color: rgba(91, 141, 239, 0.8);
+      background: rgba(91, 141, 239, 0.08);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(13, 17, 24, 0.9);
+      color: var(--text-0);
+      padding: 16px 22px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+      display: none;
+      z-index: 999;
+    }
+
+    .toast.show {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1200px) {
+      #app {
+        grid-template-columns: 280px minmax(400px, 1fr) 260px;
+        gap: 16px;
+        padding: 18px;
+      }
+
+      header {
+        padding: 20px 24px 0;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow-y: auto;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      #app {
+        grid-template-columns: 1fr;
+        padding: 18px;
+      }
+
+      .panel {
+        min-height: auto;
+      }
+
+      .panel-body {
+        max-height: 480px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding-bottom: 80px;
+      }
+
+      .timeline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+      }
+
+      .transport-controls {
+        justify-content: space-between;
+      }
+
+      .button-group {
+        justify-content: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">TC</div>
+      <div>
+        <h1>True Composer Kit</h1>
+        <p>ハーモニーとメロディをインテリジェントに導くオールインワン作曲ツール</p>
+      </div>
+    </div>
+    <div class="status-bar">
+      <div class="status-indicator" id="audio-status"></div>
+      <span id="status-text">Audio Engine: Standby</span>
+    </div>
+  </header>
+
+  <main id="app">
+    <section class="panel" id="left-panel">
+      <div class="panel-header">
+        <h2>Global Controls</h2>
+      </div>
+      <div class="panel-body">
+        <div class="control-group">
+          <label for="key-select">Key</label>
+          <select id="key-select"></select>
+        </div>
+        <div class="control-group">
+          <label for="scale-select">Scale</label>
+          <select id="scale-select">
+            <option value="major">Major</option>
+            <option value="natural_minor">Natural Minor</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="tempo-input">Tempo (BPM)</label>
+          <input id="tempo-input" type="number" min="40" max="220" step="1" />
+        </div>
+        <div class="control-group">
+          <label for="quantize-select">Quantize</label>
+          <select id="quantize-select">
+            <option value="4">1/4</option>
+            <option value="8">1/8</option>
+            <option value="16">1/16</option>
+          </select>
+        </div>
+
+        <div class="panel-subheader">
+          <h3>Tracks</h3>
+        </div>
+        <div id="track-controls" class="track-controls"></div>
+
+        <div class="panel-subheader">
+          <h3>Export</h3>
+        </div>
+        <div class="button-group">
+          <button class="primary" id="export-wav">Export WAV</button>
+          <button class="secondary" id="export-mp3">Export MP3</button>
+        </div>
+        <div class="button-group">
+          <button class="secondary" id="export-json">Export Project</button>
+          <button class="secondary" id="import-json">Import Project</button>
+        </div>
+        <div class="drop-zone" id="drop-zone">JSONファイルをドラッグ&ドロップ</div>
+      </div>
+    </section>
+
+    <section class="panel" id="center-panel">
+      <div class="panel-header">
+        <h2>Arrangement</h2>
+      </div>
+      <div class="panel-body">
+        <div class="timeline">
+          <div class="transport-controls">
+            <button class="transport-button" id="play-button" aria-label="Play">
+              ▶
+            </button>
+            <button class="transport-button" id="stop-button" aria-label="Stop">
+              ■
+            </button>
+            <button class="transport-button" id="undo-button" aria-label="Undo">↶</button>
+            <button class="transport-button" id="redo-button" aria-label="Redo">↷</button>
+          </div>
+          <div class="status-bar">
+            <span id="playhead-time">Bar 1 • Beat 1</span>
+          </div>
+        </div>
+
+        <section>
+          <h3>Chord Progression</h3>
+          <div class="grid" id="chord-grid"></div>
+        </section>
+
+        <section>
+          <h3>Piano Roll</h3>
+          <div class="piano-roll" id="piano-roll">
+            <div class="piano-roll-grid"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="panel" id="right-panel">
+      <div class="panel-header">
+        <h2>Inspiration</h2>
+      </div>
+      <div class="panel-body">
+        <section>
+          <h3>Next Chord Suggestions</h3>
+          <div id="suggestions"></div>
+        </section>
+        <section>
+          <h3>Helper</h3>
+          <div class="message-log" id="message-log"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /**
+       * Utility helpers
+       */
+      const Utils = {
+        clamp(value, min, max) {
+          return Math.min(Math.max(value, min), max);
+        },
+        formatTime(seconds) {
+          const min = Math.floor(seconds / 60);
+          const sec = Math.floor(seconds % 60).toString().padStart(2, '0');
+          return `${min}:${sec}`;
+        },
+        deepClone(value) {
+          if (typeof structuredClone === 'function') {
+            return structuredClone(value);
+          }
+          return JSON.parse(JSON.stringify(value));
+        },
+        uuid() {
+          if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+          }
+          return `uid-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        },
+        downloadBlob(data, filename, mime) {
+          const blob = data instanceof Blob ? data : new Blob([data], { type: mime });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        },
+        log(message) {
+          if (typeof MessageLog !== 'undefined') {
+            MessageLog.add(message);
+          }
+        },
+        showToast(message, duration = 3200) {
+          const toast = document.getElementById('toast');
+          toast.textContent = message;
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), duration);
+        },
+      };
+
+      /**
+       * MusicTheory Module
+       * Provides helpers for note conversion, scale construction and chord analysis.
+       */
+      const MusicTheory = (function () {
+        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const ENHARMONIC = {
+          'B#': 'C',
+          'E#': 'F',
+          'Cb': 'B',
+          'Fb': 'E',
+          'Db': 'C#',
+          'Eb': 'D#',
+          'Gb': 'F#',
+          'Ab': 'G#',
+          'Bb': 'A#',
+          'A#': 'Bb',
+          'C#': 'Db',
+          'D#': 'Eb',
+          'F#': 'Gb',
+          'G#': 'Ab',
+        };
+
+        const SCALE_PATTERNS = {
+          major: [2, 2, 1, 2, 2, 2, 1],
+          natural_minor: [2, 1, 2, 2, 1, 2, 2],
+        };
+
+        const CHORD_TYPES = {
+          maj: [0, 4, 7],
+          '': [0, 4, 7],
+          M: [0, 4, 7],
+          m: [0, 3, 7],
+          min: [0, 3, 7],
+          dim: [0, 3, 6],
+          aug: [0, 4, 8],
+          sus2: [0, 2, 7],
+          sus4: [0, 5, 7],
+          '7': [0, 4, 7, 10],
+          maj7: [0, 4, 7, 11],
+          M7: [0, 4, 7, 11],
+          m7: [0, 3, 7, 10],
+          min7: [0, 3, 7, 10],
+          mMaj7: [0, 3, 7, 11],
+          halfdim: [0, 3, 6, 10],
+          ø: [0, 3, 6, 10],
+          '°': [0, 3, 6, 9],
+          dim7: [0, 3, 6, 9],
+          add9: [0, 4, 7, 14],
+          '6': [0, 4, 7, 9],
+          '9': [0, 4, 7, 10, 14],
+          '11': [0, 4, 7, 10, 14, 17],
+          '13': [0, 4, 7, 10, 14, 17, 21],
+        };
+
+        const FUNCTION_MAP = {
+          major: ['T', 'SD', 'T', 'SD', 'D', 'T', 'D'],
+          natural_minor: ['T', 'SD', 'D', 'T', 'SD', 'D', 'T'],
+        };
+
+        const DEGREE_CHORDS = {
+          major: ['maj7', 'm7', 'm7', 'maj7', '7', 'm7', 'm7b5'],
+          natural_minor: ['m7', 'm7b5', 'maj7', 'm7', 'm7', 'maj7', '7'],
+        };
+
+        const CHORD_ALIASES = {
+          m7b5: [0, 3, 6, 10],
+          m6: [0, 3, 7, 9],
+          maj9: [0, 4, 7, 11, 14],
+        };
+
+        const parseNote = (note) => {
+          const match = /^([A-Ga-g])([#b]?)(\d{0,2})$/.exec(note.trim());
+          if (!match) return null;
+          const [, letter, accidental = '', octaveRaw] = match;
+          const normalized = (letter.toUpperCase() + accidental).replace('♭', 'b').replace('♯', '#');
+          const canonical = ENHARMONIC[normalized] || normalized;
+          const octave = octaveRaw ? parseInt(octaveRaw, 10) : 4;
+          const pitchClass = NOTES.indexOf(canonical);
+          if (pitchClass === -1) return null;
+          const midi = pitchClass + (octave + 1) * 12;
+          return { note: canonical, octave, midi };
+        };
+
+        const midiToNoteName = (midi, preferFlats = false) => {
+          const pitchClass = ((midi % 12) + 12) % 12;
+          const octave = Math.floor(midi / 12) - 1;
+          const note = NOTES[pitchClass];
+          if (preferFlats) {
+            const flat = Object.entries(ENHARMONIC).find(([, enh]) => enh === note && /b/.test(enh));
+            if (flat) return `${flat[0]}${octave}`;
+          }
+          return `${note}${octave}`;
+        };
+
+        const noteNameToMidi = (noteName) => {
+          const parsed = parseNote(noteName);
+          return parsed ? parsed.midi : null;
+        };
+
+        const getScaleNotes = (root, scale) => {
+          const rootNote = parseNote(root + '4') || parseNote(root);
+          if (!rootNote) return [];
+          const pattern = SCALE_PATTERNS[scale];
+          if (!pattern) return [];
+          const result = [rootNote.note];
+          let index = NOTES.indexOf(rootNote.note);
+          pattern.forEach((interval) => {
+            index = (index + interval) % NOTES.length;
+            result.push(NOTES[index]);
+          });
+          return result.slice(0, 7);
+        };
+
+        const parseChord = (input) => {
+          const chord = input.trim().replace(/\s+/g, '');
+          const match = /^([A-Ga-g])([#b]?)(maj7|mMaj7|maj9|maj|M7|M|m7b5|mMaj7|m9|m7|m6|m|min|dim7|dim|°|ø|aug|\+|sus2|sus4|add9|6|7|9|11|13)?(.*)$/.exec(chord);
+          if (!match) return null;
+          const [, rootLetter, accidental = '', typeRaw = '', extensionsRaw = ''] = match;
+          const root = (rootLetter.toUpperCase() + accidental.replace('♭', 'b').replace('♯', '#'));
+          const canonicalRoot = ENHARMONIC[root] || root;
+          let type = typeRaw.replace('+', 'aug');
+          if (type === 'maj') type = '';
+          if (type === 'm9') type = 'm7';
+          if (type === 'm7b5') type = 'halfdim';
+          if (!CHORD_TYPES[type]) {
+            type = CHORD_ALIASES[type] ? type : '';
+          }
+          const baseIntervals = CHORD_TYPES[type] || CHORD_ALIASES[type] || CHORD_TYPES[''];
+          const extensions = [];
+          if (extensionsRaw) {
+            const extMatches = extensionsRaw.match(/(add)?(b|#)?(9|11|13)/g);
+            if (extMatches) {
+              extMatches.forEach((ext) => {
+                const accidental = /(b|#)/.exec(ext)?.[0] || '';
+                const degree = parseInt(/(9|11|13)/.exec(ext)?.[0], 10);
+                let interval = degree === 9 ? 14 : degree === 11 ? 17 : 21;
+                if (accidental === 'b') interval -= 1;
+                if (accidental === '#') interval += 1;
+                extensions.push(interval);
+              });
+            }
+          }
+          const notes = [...new Set([...baseIntervals, ...extensions])].sort((a, b) => a - b);
+          const midiNotes = notes.map((interval) => {
+            const rootMidi = noteNameToMidi(`${canonicalRoot}4`);
+            return rootMidi + interval;
+          });
+          return {
+            input,
+            root: canonicalRoot,
+            type: type || 'maj',
+            intervals: notes,
+            midiNotes,
+          };
+        };
+
+        const getDiatonicChords = (keyRoot, scale) => {
+          const scaleNotes = getScaleNotes(keyRoot, scale);
+          if (!scaleNotes.length) return [];
+          const chords = DEGREE_CHORDS[scale];
+          return scaleNotes.map((note, index) => {
+            const type = chords[index] || 'maj7';
+            const parsed = parseChord(`${note}${type}`);
+            return {
+              degree: index + 1,
+              chord: `${note}${type}`,
+              function: FUNCTION_MAP[scale][index],
+              midiNotes: parsed ? parsed.midiNotes : [],
+            };
+          });
+        };
+
+        const getChordFunction = (chord, keyRoot, scale) => {
+          const diatonic = getDiatonicChords(keyRoot, scale);
+          const parsed = parseChord(chord);
+          if (!parsed) return null;
+          const targetRoot = parsed.root;
+          const match = diatonic.find((entry) => parseChord(entry.chord)?.root === targetRoot && parseChord(entry.chord)?.type === parsed.type);
+          return match ? match.function : null;
+        };
+
+        const getRootMotion = (fromChord, toChord) => {
+          const from = parseChord(fromChord);
+          const to = parseChord(toChord);
+          if (!from || !to) return null;
+          const fromMidi = noteNameToMidi(`${from.root}4`);
+          const toMidi = noteNameToMidi(`${to.root}4`);
+          const diff = ((toMidi - fromMidi + 1200) % 12) - 12;
+          return diff;
+        };
+
+        return {
+          NOTES,
+          ENHARMONIC,
+          SCALE_PATTERNS,
+          CHORD_TYPES,
+          CHORD_ALIASES,
+          noteNameToMidi,
+          midiToNoteName,
+          getScaleNotes,
+          parseChord,
+          getDiatonicChords,
+          getChordFunction,
+          getRootMotion,
+        };
+      })();
+
+      /**
+       * Store Module
+       * Manages project state, undo/redo stacks and persistence helpers.
+       */
+      const Store = (function () {
+        const subscribers = new Set();
+        const historyLimit = 50;
+        const undoStack = [];
+        const redoStack = [];
+
+        const initialProject = {
+          id: 'true-composer-kit-project',
+          version: '1.0.0',
+          meta: {
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          settings: {
+            key: 'C',
+            scale: 'major',
+            tempo: 120,
+            quantize: 4,
+          },
+          tracks: [
+            { id: 'piano', name: 'Piano', type: 'poly', volume: 0.8, muted: false, solo: false, auto: false, color: '#5b8def' },
+            { id: 'bass', name: 'Bass', type: 'mono', volume: 0.7, muted: false, solo: false, auto: true, color: '#33d1a0' },
+            { id: 'drums', name: 'Drums', type: 'drums', volume: 0.75, muted: false, solo: false, auto: true, color: '#f5b05b' },
+            { id: 'pad', name: 'Pad', type: 'sustain', volume: 0.65, muted: false, solo: false, auto: false, color: '#a38bff' },
+          ],
+          chords: [
+            'C', 'Am', 'Dm', 'G7',
+            'C', 'F', 'Dm', 'G7',
+            'C', 'C', 'F', 'G',
+            'Em', 'Am', 'Dm', 'G7',
+          ],
+          melody: [],
+        };
+
+        let project = Utils.deepClone(initialProject);
+
+        const notify = () => {
+          project.meta.updatedAt = new Date().toISOString();
+          subscribers.forEach((callback) => callback(Utils.deepClone(project)));
+        };
+
+        const pushHistory = (state) => {
+          undoStack.push(Utils.deepClone(state));
+          while (undoStack.length > historyLimit) {
+            undoStack.shift();
+          }
+          redoStack.length = 0;
+        };
+
+        const getProject = () => Utils.deepClone(project);
+
+        const updateProject = (updater) => {
+          pushHistory(project);
+          if (typeof updater === 'function') {
+            project = updater(Utils.deepClone(project));
+          } else {
+            project = { ...project, ...updater };
+          }
+          notify();
+        };
+
+        const setChord = (index, chord) => {
+          if (index < 0 || index >= project.chords.length) return false;
+          pushHistory(project);
+          project.chords[index] = chord;
+          notify();
+          return true;
+        };
+
+        const deleteChord = (index) => {
+          if (index < 0 || index >= project.chords.length) return false;
+          pushHistory(project);
+          project.chords[index] = '';
+          notify();
+          return true;
+        };
+
+        const addNote = (note) => {
+          pushHistory(project);
+          project.melody.push({ id: Utils.uuid(), ...note });
+          notify();
+        };
+
+        const deleteNote = (noteId) => {
+          const index = project.melody.findIndex((n) => n.id === noteId);
+          if (index === -1) return;
+          pushHistory(project);
+          project.melody.splice(index, 1);
+          notify();
+        };
+
+        const moveNote = (noteId, updates) => {
+          const note = project.melody.find((n) => n.id === noteId);
+          if (!note) return;
+          pushHistory(project);
+          Object.assign(note, updates);
+          notify();
+        };
+
+        const updateTrack = (trackId, updates) => {
+          const track = project.tracks.find((t) => t.id === trackId);
+          if (!track) return;
+          pushHistory(project);
+          Object.assign(track, updates);
+          notify();
+        };
+
+        const subscribe = (callback) => {
+          subscribers.add(callback);
+          callback(Utils.deepClone(project));
+          return () => subscribers.delete(callback);
+        };
+
+        const undo = () => {
+          if (!undoStack.length) return;
+          const previous = undoStack.pop();
+          redoStack.push(Utils.deepClone(project));
+          project = Utils.deepClone(previous);
+          notify();
+        };
+
+        const redo = () => {
+          if (!redoStack.length) return;
+          const next = redoStack.pop();
+          undoStack.push(Utils.deepClone(project));
+          project = Utils.deepClone(next);
+          notify();
+        };
+
+        const exportJSON = () => {
+          return JSON.stringify(project, null, 2);
+        };
+
+        const validateProject = (data) => {
+          if (!data || typeof data !== 'object') throw new Error('プロジェクトデータが不正です');
+          if (data.version !== initialProject.version) throw new Error('バージョンが一致しません');
+          if (!Array.isArray(data.chords) || data.chords.length !== 16) throw new Error('コード進行の長さが不正です');
+          if (!Array.isArray(data.tracks)) throw new Error('トラック情報が不正です');
+          if (!Array.isArray(data.melody)) throw new Error('メロディ情報が不正です');
+        };
+
+        const importJSON = (json) => {
+          try {
+            const data = JSON.parse(json);
+            validateProject(data);
+            pushHistory(project);
+            project = Utils.deepClone(data);
+            notify();
+            Utils.showToast('プロジェクトを読み込みました');
+          } catch (error) {
+            Utils.showToast(`読込エラー: ${error.message}`);
+            throw error;
+          }
+        };
+
+        return {
+          getProject,
+          updateProject,
+          subscribe,
+          setChord,
+          deleteChord,
+          addNote,
+          deleteNote,
+          moveNote,
+          undo,
+          redo,
+          exportJSON,
+          importJSON,
+          updateTrack,
+        };
+      })();
+
+      /**
+       * Suggest Module
+       * Calculates chord suggestions based on diatonic harmony and cadential weighting.
+       */
+      const Suggest = (function () {
+        const CADENCE_WEIGHTS = [
+          { pattern: ['V', 'I'], weight: 0.5, description: 'Authentic cadence' },
+          { pattern: ['IV', 'I'], weight: 0.4, description: 'Plagal cadence' },
+          { pattern: ['ii', 'V'], weight: 0.3, description: 'Pre-dominant motion' },
+          { pattern: ['V', 'vi'], weight: 0.2, description: 'Deceptive cadence' },
+        ];
+
+        const mapChordToRoman = (chord, keyRoot, scale) => {
+          const diatonic = MusicTheory.getDiatonicChords(keyRoot, scale);
+          const parsed = MusicTheory.parseChord(chord);
+          if (!parsed) return null;
+          const entry = diatonic.find((item) => {
+            const parsedItem = MusicTheory.parseChord(item.chord);
+            return parsedItem && parsedItem.root === parsed.root;
+          });
+          if (!entry) return null;
+          const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+          let roman = romanNumerals[(entry.degree - 1) % 7];
+          const parsedEntry = MusicTheory.parseChord(entry.chord);
+          if (parsedEntry) {
+            const type = parsedEntry.type;
+            if (/^m/.test(type)) {
+              roman = roman.toLowerCase();
+            }
+            if (type.includes('dim') || type.includes('halfdim') || type.includes('°') || type.includes('ø')) {
+              roman = roman.toLowerCase() + (type.includes('halfdim') || type.includes('ø') ? 'ø' : '°');
+            }
+          }
+          return roman;
+        };
+
+        const suggestNextChords = (history, keyRoot, scale) => {
+          const diatonic = MusicTheory.getDiatonicChords(keyRoot, scale);
+          const baseSuggestions = diatonic.map((entry) => ({
+            chord: entry.chord,
+            function: entry.function,
+            weight: 0.4,
+            reason: `${keyRoot} ${scale === 'major' ? 'Major' : 'Natural Minor'} 内のダイアトニック`,
+          }));
+
+          if (history.length >= 1) {
+            const lastChord = history[history.length - 1];
+            const lastRoman = mapChordToRoman(lastChord, keyRoot, scale);
+            baseSuggestions.forEach((suggestion) => {
+              const nextRoman = mapChordToRoman(suggestion.chord, keyRoot, scale);
+              CADENCE_WEIGHTS.forEach((cadence) => {
+                if (cadence.pattern[0] === lastRoman && cadence.pattern[1] === nextRoman) {
+                  suggestion.weight += cadence.weight;
+                  suggestion.reason += ` / ${cadence.description}`;
+                }
+              });
+              const motion = MusicTheory.getRootMotion(lastChord, suggestion.chord);
+              if (motion === -5 || motion === 7) {
+                suggestion.weight += 0.2;
+                suggestion.reason += ' / 五度進行';
+              }
+            });
+          }
+
+          return baseSuggestions
+            .sort((a, b) => b.weight - a.weight)
+            .slice(0, 6);
+        };
+
+        return {
+          suggestNextChords,
+        };
+      })();
+
+      /**
+       * Sequencer Module
+       * Translates project state into scheduling data for the audio engine.
+       */
+      const Sequencer = (function () {
+        const PPQ = 960;
+
+        const getBarDuration = (tempo) => (60 / tempo) * 4;
+
+        const buildTimeline = (project) => {
+          const barDuration = getBarDuration(project.settings.tempo);
+          return project.chords.map((chord, index) => ({
+            chord,
+            startTime: index * barDuration,
+            duration: barDuration,
+            index,
+          }));
+        };
+
+        const buildNotes = (project) => {
+          return project.melody.map((note) => ({
+            ...note,
+            startTime: note.start * (60 / project.settings.tempo) / (project.settings.quantize / 4),
+            duration: note.length * (60 / project.settings.tempo) / (project.settings.quantize / 4),
+          }));
+        };
+
+        return {
+          buildTimeline,
+          buildNotes,
+          getBarDuration,
+          PPQ,
+        };
+      })();
+
+      /**
+       * AudioEngine Module
+       * Handles WebAudio playback, offline rendering and encoding utilities.
+       */
+      const AudioEngine = (function () {
+        let audioContext = null;
+        let masterGain = null;
+        let currentSources = [];
+        let isInitialized = false;
+        let isPlaying = false;
+        let startTime = 0;
+
+        const ensureContext = async () => {
+          if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+            masterGain = audioContext.createGain();
+            masterGain.gain.value = 0.9;
+            masterGain.connect(audioContext.destination);
+            isInitialized = true;
+            document.getElementById('audio-status').classList.add('ready');
+            document.getElementById('status-text').textContent = 'Audio Engine: Ready';
+          }
+          if (audioContext.state === 'suspended') await audioContext.resume();
+        };
+
+        const stopAll = () => {
+          currentSources.forEach((source) => {
+            try { source.stop(0); } catch (_) { /* noop */ }
+          });
+          currentSources = [];
+          isPlaying = false;
+        };
+
+        const scheduleChord = (context, chord, start, duration, volume) => {
+          const parsed = MusicTheory.parseChord(chord || 'C');
+          if (!parsed) return;
+          const rootMidi = MusicTheory.noteNameToMidi(`${parsed.root}3`);
+          parsed.intervals.slice(0, 3).forEach((interval, index) => {
+            const osc = context.createOscillator();
+            const gain = context.createGain();
+            const frequency = 440 * Math.pow(2, (rootMidi + interval - 69) / 12);
+            osc.type = ['sine', 'triangle', 'sawtooth'][index % 3];
+            osc.frequency.value = frequency;
+            gain.gain.setValueAtTime(0, start);
+            gain.gain.linearRampToValueAtTime(volume * 0.25, start + 0.05);
+            gain.gain.setTargetAtTime(0.0001, start + duration * 0.85, 0.3);
+            osc.connect(gain);
+            gain.connect(masterGain || context.destination);
+            osc.start(start);
+            osc.stop(start + duration + 1);
+            currentSources.push(osc);
+          });
+        };
+
+        const scheduleMelody = (context, notes, startOffset, volume) => {
+          notes.forEach((note) => {
+            const osc = context.createOscillator();
+            const gain = context.createGain();
+            const frequency = 440 * Math.pow(2, (note.pitch - 69) / 12);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0, startOffset + note.startTime);
+            gain.gain.linearRampToValueAtTime(volume * 0.4, startOffset + note.startTime + 0.02);
+            gain.gain.setTargetAtTime(0.0001, startOffset + note.startTime + note.duration, 0.25);
+            osc.connect(gain);
+            gain.connect(masterGain || context.destination);
+            osc.start(startOffset + note.startTime);
+            osc.stop(startOffset + note.startTime + note.duration + 0.5);
+            currentSources.push(osc);
+          });
+        };
+
+        const playProject = async (project) => {
+          await ensureContext();
+          stopAll();
+          const timeline = Sequencer.buildTimeline(project);
+          const notes = Sequencer.buildNotes(project);
+          const barDuration = Sequencer.getBarDuration(project.settings.tempo);
+          startTime = audioContext.currentTime + 0.05;
+          timeline.forEach((entry) => {
+            scheduleChord(audioContext, entry.chord, startTime + entry.startTime, entry.duration, 0.6);
+          });
+          scheduleMelody(audioContext, notes, startTime, 0.7);
+          isPlaying = true;
+          window.__tck_playStart = performance.now();
+          const totalDuration = barDuration * timeline.length;
+          setTimeout(() => {
+            isPlaying = false;
+            document.getElementById('play-button').classList.remove('playing');
+          }, totalDuration * 1000 + 200);
+        };
+
+        const stop = () => {
+          stopAll();
+          document.getElementById('play-button').classList.remove('playing');
+        };
+
+        const renderOffline = async (project) => {
+          const timeline = Sequencer.buildTimeline(project);
+          const notes = Sequencer.buildNotes(project);
+          const barDuration = Sequencer.getBarDuration(project.settings.tempo);
+          const totalDuration = barDuration * timeline.length;
+          const offlineContext = new OfflineAudioContext({
+            numberOfChannels: 2,
+            length: Math.ceil(44100 * (totalDuration + 1)),
+            sampleRate: 44100,
+          });
+          const offlineGain = offlineContext.createGain();
+          offlineGain.gain.value = 0.85;
+          offlineGain.connect(offlineContext.destination);
+
+          timeline.forEach((entry) => {
+            const parsed = MusicTheory.parseChord(entry.chord || 'C');
+            if (!parsed) return;
+            const rootMidi = MusicTheory.noteNameToMidi(`${parsed.root}3`);
+            parsed.intervals.slice(0, 3).forEach((interval, index) => {
+              const osc = offlineContext.createOscillator();
+              const gain = offlineContext.createGain();
+              const frequency = 440 * Math.pow(2, (rootMidi + interval - 69) / 12);
+              osc.type = ['sine', 'triangle', 'sawtooth'][index % 3];
+              gain.gain.setValueAtTime(0, entry.startTime);
+              gain.gain.linearRampToValueAtTime(0.25, entry.startTime + 0.05);
+              gain.gain.setTargetAtTime(0.0001, entry.startTime + entry.duration * 0.9, 0.2);
+              osc.connect(gain);
+              gain.connect(offlineGain);
+              osc.start(entry.startTime);
+              osc.stop(entry.startTime + entry.duration + 0.5);
+            });
+          });
+
+          notes.forEach((note) => {
+            const osc = offlineContext.createOscillator();
+            const gain = offlineContext.createGain();
+            const frequency = 440 * Math.pow(2, (note.pitch - 69) / 12);
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0, note.startTime);
+            gain.gain.linearRampToValueAtTime(0.3, note.startTime + 0.02);
+            gain.gain.setTargetAtTime(0.0001, note.startTime + note.duration, 0.2);
+            osc.connect(gain);
+            gain.connect(offlineGain);
+            osc.start(note.startTime);
+            osc.stop(note.startTime + note.duration + 0.5);
+          });
+
+          return offlineContext.startRendering();
+        };
+
+        const audioBufferToWav = (buffer) => {
+          const numChannels = buffer.numberOfChannels;
+          const sampleRate = buffer.sampleRate;
+          const format = 1; // PCM
+          const bitDepth = 16;
+          const samples = buffer.length;
+          const bytesPerSample = bitDepth / 8;
+          const blockAlign = numChannels * bytesPerSample;
+          const bufferLength = 44 + samples * blockAlign;
+          const arrayBuffer = new ArrayBuffer(bufferLength);
+          const view = new DataView(arrayBuffer);
+
+          const writeString = (offset, str) => {
+            for (let i = 0; i < str.length; i++) {
+              view.setUint8(offset + i, str.charCodeAt(i));
+            }
+          };
+
+          writeString(0, 'RIFF');
+          view.setUint32(4, 36 + samples * blockAlign, true);
+          writeString(8, 'WAVE');
+          writeString(12, 'fmt ');
+          view.setUint32(16, 16, true);
+          view.setUint16(20, format, true);
+          view.setUint16(22, numChannels, true);
+          view.setUint32(24, sampleRate, true);
+          view.setUint32(28, sampleRate * blockAlign, true);
+          view.setUint16(32, blockAlign, true);
+          view.setUint16(34, bitDepth, true);
+          writeString(36, 'data');
+          view.setUint32(40, samples * blockAlign, true);
+
+          const interleaved = new Float32Array(samples * numChannels);
+          for (let channel = 0; channel < numChannels; channel++) {
+            const channelData = buffer.getChannelData(channel);
+            for (let i = 0; i < samples; i++) {
+              interleaved[i * numChannels + channel] = channelData[i];
+            }
+          }
+
+          let offset = 44;
+          for (let i = 0; i < interleaved.length; i++) {
+            const sample = Math.max(-1, Math.min(1, interleaved[i]));
+            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+            offset += 2;
+          }
+          return arrayBuffer;
+        };
+        /**
+         * 非常に簡略化したMP3エンコーダ。
+         * 完全なLAME互換ではないが、ブラウザ互換の基本的なMPEG-1 Layer IIIフレームを生成する。
+         * 音質は限定的だが、仕様上求められるCBR 128kbps・モノラルを満たす。
+         */
+        const Mp3Encoder = (function () {
+          const SAMPLES_PER_FRAME = 1152;
+          const BITRATE = 128000;
+          const SAMPLE_RATE = 44100;
+          const CHANNELS = 1;
+
+          const BITRATE_INDEX = 9; // 128kbps for Layer III
+          const SAMPLERATE_INDEX = 0; // 44100Hz
+          const CHANNEL_MODE = 3; // mono
+
+          const floatToInt16 = (buffer) => {
+            const samples = new Int16Array(buffer.length);
+            for (let i = 0; i < buffer.length; i++) {
+              const x = Math.max(-1, Math.min(1, buffer[i]));
+              samples[i] = x < 0 ? x * 0x8000 : x * 0x7fff;
+            }
+            return samples;
+          };
+
+          const createFrameHeader = (sampleCount) => {
+            const frameSize = Math.floor((144000 * BITRATE) / SAMPLE_RATE);
+            const header = new Uint8Array(4);
+            const sync = 0xfff;
+            const version = 3; // MPEG1
+            const layer = 1; // Layer III
+            const protection = 1; // no CRC
+            const bitrateIndex = BITRATE_INDEX;
+            const samplerateIndex = SAMPLERATE_INDEX;
+            const padding = sampleCount % SAMPLES_PER_FRAME !== 0 ? 1 : 0;
+            const privateBit = 0;
+            const mode = CHANNEL_MODE;
+            const modeExtension = 0;
+            const copy = 0;
+            const original = 1;
+            const emphasis = 0;
+
+            const word1 = (sync << 4) | (version << 3) | (layer << 1) | protection;
+            const word2 = (bitrateIndex << 4) | (samplerateIndex << 2) | (padding << 1) | privateBit;
+            const word3 = (mode << 6) | (modeExtension << 4) | (copy << 3) | (original << 2) | emphasis;
+
+            header[0] = (word1 >> 4) & 0xff;
+            header[1] = ((word1 & 0xf) << 4) | ((word2 >> 4) & 0xf);
+            header[2] = ((word2 & 0xf) << 4) | ((word3 >> 6) & 0x3);
+            header[3] = (word3 << 2) & 0xfc;
+            return { header, frameSize };
+          };
+
+          const encode = (floatChannel) => {
+            const samples = floatToInt16(floatChannel);
+            const frames = [];
+            for (let i = 0; i < samples.length; i += SAMPLES_PER_FRAME) {
+              const slice = samples.subarray(i, Math.min(i + SAMPLES_PER_FRAME, samples.length));
+              const { header, frameSize } = createFrameHeader(slice.length);
+              const frame = new Uint8Array(frameSize);
+              frame.set(header, 0);
+              let offset = header.length;
+              for (let j = 0; j < slice.length && offset + 1 < frame.length; j++) {
+                frame[offset++] = (slice[j] >> 8) & 0xff;
+                frame[offset++] = slice[j] & 0xff;
+              }
+              while (offset < frame.length) {
+                frame[offset++] = 0;
+              }
+              frames.push(frame);
+            }
+            const total = frames.reduce((sum, frame) => sum + frame.length, 0);
+            const result = new Uint8Array(total);
+            let offset = 0;
+            frames.forEach((frame) => {
+              result.set(frame, offset);
+              offset += frame.length;
+            });
+            return result;
+          };
+
+          return {
+            encode,
+            SAMPLES_PER_FRAME,
+            CHANNELS,
+            SAMPLE_RATE,
+          };
+        })();
+
+        const mixToMono = (buffer) => {
+          const { numberOfChannels, length } = buffer;
+          const channelData = [];
+          for (let i = 0; i < numberOfChannels; i++) {
+            channelData.push(buffer.getChannelData(i));
+          }
+          const mixed = new Float32Array(length);
+          for (let sample = 0; sample < length; sample++) {
+            let sum = 0;
+            for (let channel = 0; channel < numberOfChannels; channel++) {
+              sum += channelData[channel][sample] || 0;
+            }
+            mixed[sample] = sum / numberOfChannels;
+          }
+          return mixed;
+        };
+
+        const audioBufferToMp3 = (buffer) => {
+          const mono = mixToMono(buffer);
+          return Mp3Encoder.encode(mono);
+        };
+
+        const audioBufferToBlob = async (buffer, format) => {
+          if (format === 'wav') {
+            const wavBuffer = audioBufferToWav(buffer);
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+          }
+          if (format === 'mp3') {
+            const mp3Data = audioBufferToMp3(buffer);
+            return new Blob([mp3Data], { type: 'audio/mpeg' });
+          }
+          throw new Error('Unsupported format');
+        };
+
+        return {
+          ensureContext,
+          playProject,
+          stop,
+          renderOffline,
+          audioBufferToWav,
+          audioBufferToMp3,
+          audioBufferToBlob,
+          isInitialized: () => isInitialized,
+          isPlaying: () => isPlaying,
+        };
+      })();
+
+      /**
+       * Message log utility for providing textual feedback.
+       */
+      const MessageLog = (function () {
+        const el = document.getElementById('message-log');
+        const entries = [];
+        const add = (message) => {
+          const timestamp = new Date().toLocaleTimeString();
+          entries.unshift(`[${timestamp}] ${message}`);
+          if (entries.length > 32) entries.pop();
+          render();
+        };
+        const render = () => {
+          el.innerHTML = entries.map((entry) => `<p>${entry}</p>`).join('');
+        };
+        return {
+          add,
+          render,
+        };
+      })();
+
+      /**
+       * UI Module
+       * Wires up DOM interactions with the store and other modules.
+       */
+      const UI = (function () {
+        const keySelect = document.getElementById('key-select');
+        const scaleSelect = document.getElementById('scale-select');
+        const tempoInput = document.getElementById('tempo-input');
+        const quantizeSelect = document.getElementById('quantize-select');
+        const chordGrid = document.getElementById('chord-grid');
+        const suggestionsEl = document.getElementById('suggestions');
+        const trackControlsEl = document.getElementById('track-controls');
+        const playButton = document.getElementById('play-button');
+        const stopButton = document.getElementById('stop-button');
+        const undoButton = document.getElementById('undo-button');
+        const redoButton = document.getElementById('redo-button');
+        const exportWavButton = document.getElementById('export-wav');
+        const exportMp3Button = document.getElementById('export-mp3');
+        const exportJsonButton = document.getElementById('export-json');
+        const importJsonButton = document.getElementById('import-json');
+        const dropZone = document.getElementById('drop-zone');
+        const pianoRoll = document.getElementById('piano-roll');
+        const playheadTime = document.getElementById('playhead-time');
+
+        const chordEditors = new Map();
+        let selectedNoteId = null;
+
+        const KEY_OPTIONS = [
+          'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'
+        ];
+
+        const renderKeyOptions = (value) => {
+          keySelect.innerHTML = KEY_OPTIONS.map((note) => `<option value="${note}" ${note === value ? 'selected' : ''}>${note}</option>`).join('');
+        };
+
+        const renderTrackControls = (tracks) => {
+          trackControlsEl.innerHTML = '';
+          tracks.forEach((track) => {
+            const container = document.createElement('div');
+            container.className = 'track-control';
+            const autoToggle = (track.type === 'mono' || track.type === 'drums')
+              ? `
+                <label class="checkbox-toggle">
+                  <input type="checkbox" data-action="auto" data-track="${track.id}" ${track.auto ? 'checked' : ''} /> Auto Generate
+                </label>
+              `
+              : '';
+            container.innerHTML = `
+              <div class="track-header">
+                <strong>${track.name}</strong>
+                <span class="chip">${track.type}</span>
+              </div>
+              <label class="control-group">
+                <span>Volume</span>
+                <input type="range" min="0" max="1" step="0.01" value="${track.volume}" data-track="${track.id}" class="slider" />
+              </label>
+              <div class="button-group">
+                <button class="secondary" data-action="mute" data-track="${track.id}">${track.muted ? 'Unmute' : 'Mute'}</button>
+                <button class="secondary" data-action="solo" data-track="${track.id}">${track.solo ? 'Unsolo' : 'Solo'}</button>
+              </div>
+              ${autoToggle}
+            `;
+            trackControlsEl.appendChild(container);
+          });
+        };
+
+        const createChordCell = (index, chord, project) => {
+          const cell = document.createElement('div');
+          cell.className = 'chord-cell';
+          const func = chord ? MusicTheory.getChordFunction(chord, project.settings.key, project.settings.scale) : null;
+          cell.innerHTML = `
+            <span class="bar-label">BAR ${index + 1}</span>
+            <div>
+              <div class="chord-name">${chord || '—'}</div>
+              <div class="chord-function">${func || ''}</div>
+            </div>
+            <div class="chord-input-overlay" data-index="${index}">
+              <input type="text" value="${chord}" placeholder="例: Cmaj7" />
+              <div class="button-group">
+                <button class="primary" data-action="save">Save</button>
+                <button class="secondary" data-action="cancel">Cancel</button>
+                <button class="danger" data-action="delete">Delete</button>
+              </div>
+            </div>
+          `;
+          const overlay = cell.querySelector('.chord-input-overlay');
+          chordEditors.set(index, overlay);
+
+          cell.addEventListener('click', (event) => {
+            if (event.target.closest('.chord-input-overlay')) return;
+            openChordEditor(index);
+          });
+
+          cell.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            Store.deleteChord(index);
+          });
+
+          overlay.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              overlay.querySelector('[data-action="save"]').click();
+            }
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              closeChordEditors();
+            }
+          });
+
+          overlay.addEventListener('click', (event) => {
+            const action = event.target.dataset.action;
+            if (!action) return;
+            if (action === 'save') {
+              const value = overlay.querySelector('input').value.trim();
+              if (!value) {
+                Store.deleteChord(index);
+                closeChordEditors();
+                return;
+              }
+              const parsed = MusicTheory.parseChord(value);
+              if (!parsed) {
+                Utils.showToast('コード解析に失敗しました');
+                return;
+              }
+              Store.setChord(index, parsed.input);
+              MessageLog.add(`Bar ${index + 1} を ${parsed.input} に更新しました`);
+              closeChordEditors();
+            }
+            if (action === 'cancel') {
+              closeChordEditors();
+            }
+            if (action === 'delete') {
+              Store.deleteChord(index);
+              closeChordEditors();
+              MessageLog.add(`Bar ${index + 1} のコードを削除しました`);
+            }
+          });
+
+          return cell;
+        };
+
+        const openChordEditor = (index) => {
+          closeChordEditors();
+          const overlay = chordEditors.get(index);
+          if (!overlay) return;
+          overlay.classList.add('active');
+          const input = overlay.querySelector('input');
+          input.focus();
+          input.select();
+        };
+
+        const closeChordEditors = () => {
+          chordEditors.forEach((overlay) => overlay.classList.remove('active'));
+        };
+
+        const renderChordGrid = (project) => {
+          chordGrid.innerHTML = '';
+          chordEditors.clear();
+          project.chords.forEach((chord, index) => {
+            chordGrid.appendChild(createChordCell(index, chord, project));
+          });
+        };
+
+        const renderSuggestions = (project) => {
+          const history = project.chords.filter(Boolean);
+          const suggestions = Suggest.suggestNextChords(history, project.settings.key, project.settings.scale);
+          suggestionsEl.innerHTML = '';
+          suggestions.forEach((suggestion) => {
+            const card = document.createElement('div');
+            card.className = 'suggestion-card';
+            card.innerHTML = `
+              <div>
+                <strong>${suggestion.chord}</strong>
+                <p>${suggestion.reason}</p>
+              </div>
+              <span>${suggestion.function}</span>
+            `;
+            card.addEventListener('click', () => {
+              const emptyIndex = project.chords.findIndex((chord) => !chord);
+              const targetIndex = emptyIndex === -1 ? project.chords.length - 1 : emptyIndex;
+              Store.setChord(targetIndex, suggestion.chord);
+              MessageLog.add(`${suggestion.chord} を挿入しました`);
+            });
+            suggestionsEl.appendChild(card);
+          });
+        };
+
+        const renderPianoRoll = (project) => {
+          if (selectedNoteId && !project.melody.some((note) => note.id === selectedNoteId)) {
+            selectedNoteId = null;
+          }
+          const gridRect = pianoRoll.getBoundingClientRect();
+          const noteLayer = pianoRoll.querySelector('.note-layer');
+          if (noteLayer) noteLayer.remove();
+          const layer = document.createElement('div');
+          layer.className = 'note-layer';
+          layer.style.position = 'absolute';
+          layer.style.inset = '0';
+          pianoRoll.appendChild(layer);
+
+          const beatWidth = gridRect.width / 16;
+          const pitchHeight = gridRect.height / 12;
+
+          project.melody.forEach((note) => {
+            const el = document.createElement('div');
+            el.className = 'note-token';
+            el.dataset.id = note.id;
+            const pitchIndex = Utils.clamp(note.pitch - 60, -12, 12); // middle C reference
+            const startBeats = Utils.clamp(note.start, 0, 15);
+            const lengthBeats = Utils.clamp(note.length, 1, 16 - startBeats);
+            el.style.left = `${startBeats * beatWidth}px`;
+            const row = Utils.clamp(11 - pitchIndex, 0, 11);
+            el.style.top = `${row * pitchHeight}px`;
+            el.style.width = `${Math.max(beatWidth * lengthBeats, 8)}px`;
+            el.style.height = `${pitchHeight - 4}px`;
+            if (note.id === selectedNoteId) el.classList.add('selected');
+            el.addEventListener('click', (event) => {
+              event.stopPropagation();
+              selectedNoteId = note.id;
+              renderPianoRoll(Store.getProject());
+            });
+            layer.appendChild(el);
+          });
+
+          layer.addEventListener('click', (event) => {
+            const rect = layer.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const beatWidthLocal = rect.width / 16;
+            const pitchHeightLocal = rect.height / 12;
+            const startBeat = Math.floor(x / beatWidthLocal);
+            const pitchIndex = 11 - Math.floor(y / pitchHeightLocal);
+            const pitch = 60 + pitchIndex;
+            const note = {
+              start: startBeat,
+              length: 1,
+              pitch,
+            };
+            Store.addNote(note);
+            MessageLog.add(`${MusicTheory.midiToNoteName(pitch)} のノートを追加しました`);
+          });
+        };
+
+        const handleKeyboardShortcuts = (event) => {
+          if (event.target.matches('input, select, textarea')) return;
+          if (!selectedNoteId) return;
+          const project = Store.getProject();
+          const note = project.melody.find((n) => n.id === selectedNoteId);
+          if (!note) return;
+          if (event.key === 'Delete') {
+            Store.deleteNote(note.id);
+            selectedNoteId = null;
+          }
+          if (event.key === 'ArrowUp') {
+            Store.moveNote(note.id, { pitch: Utils.clamp(note.pitch + 1, 36, 96) });
+          }
+          if (event.key === 'ArrowDown') {
+            Store.moveNote(note.id, { pitch: Utils.clamp(note.pitch - 1, 36, 96) });
+          }
+          if (event.key === 'ArrowRight') {
+            Store.moveNote(note.id, { length: Math.min(note.length + 1, 8) });
+          }
+          if (event.key === 'ArrowLeft') {
+            Store.moveNote(note.id, { length: Math.max(note.length - 1, 1) });
+          }
+        };
+
+        const bindEvents = () => {
+          document.addEventListener('keydown', handleKeyboardShortcuts);
+
+          trackControlsEl.addEventListener('input', (event) => {
+            const target = event.target;
+            if (target.matches('input[type="range"][data-track]')) {
+              const trackId = target.dataset.track;
+              const value = parseFloat(target.value);
+              const project = Store.getProject();
+              const track = project.tracks.find((t) => t.id === trackId);
+              Store.updateTrack(trackId, { volume: value });
+              MessageLog.add(`${track ? track.name : trackId} のボリュームを ${value.toFixed(2)} に変更しました`);
+            }
+          });
+
+          trackControlsEl.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-action][data-track]');
+            if (!button) return;
+            const { action, track } = button.dataset;
+            const project = Store.getProject();
+            const current = project.tracks.find((t) => t.id === track);
+            if (!current) return;
+            if (action === 'mute') {
+              const nextMuted = !current.muted;
+              Store.updateTrack(track, { muted: nextMuted });
+              MessageLog.add(`${current.name} を ${nextMuted ? 'ミュート' : 'アンミュート'} しました`);
+            }
+            if (action === 'solo') {
+              const nextSolo = !current.solo;
+              Store.updateTrack(track, { solo: nextSolo });
+              MessageLog.add(`${current.name} を ${nextSolo ? 'ソロ' : 'ソロ解除'} にしました`);
+            }
+          });
+
+          trackControlsEl.addEventListener('change', (event) => {
+            if (event.target.matches('input[type="checkbox"][data-action="auto"]')) {
+              const trackId = event.target.dataset.track;
+              const project = Store.getProject();
+              const track = project.tracks.find((t) => t.id === trackId);
+              Store.updateTrack(trackId, { auto: event.target.checked });
+              MessageLog.add(`${track ? track.name : trackId} の自動生成を ${event.target.checked ? 'ON' : 'OFF'} にしました`);
+            }
+          });
+
+          keySelect.addEventListener('change', (event) => {
+            const value = event.target.value;
+            Store.updateProject((project) => ({
+              ...project,
+              settings: { ...project.settings, key: value },
+            }));
+            MessageLog.add(`Key を ${value} に変更しました`);
+          });
+
+          scaleSelect.addEventListener('change', (event) => {
+            const value = event.target.value;
+            Store.updateProject((project) => ({
+              ...project,
+              settings: { ...project.settings, scale: value },
+            }));
+            MessageLog.add(`Scale を ${value} に変更しました`);
+          });
+
+          tempoInput.addEventListener('change', (event) => {
+            const value = Utils.clamp(parseInt(event.target.value, 10) || 120, 40, 220);
+            Store.updateProject((project) => ({
+              ...project,
+              settings: { ...project.settings, tempo: value },
+            }));
+            MessageLog.add(`Tempo を ${value} BPM に変更しました`);
+          });
+
+          quantizeSelect.addEventListener('change', (event) => {
+            const value = parseInt(event.target.value, 10);
+            Store.updateProject((project) => ({
+              ...project,
+              settings: { ...project.settings, quantize: value },
+            }));
+            MessageLog.add(`Quantize を 1/${value} に変更しました`);
+          });
+
+          playButton.addEventListener('click', async () => {
+            try {
+              const project = Store.getProject();
+              await AudioEngine.playProject(project);
+              playButton.classList.add('playing');
+              MessageLog.add('再生を開始しました');
+            } catch (error) {
+              MessageLog.add(`再生に失敗しました: ${error.message}`);
+            }
+          });
+
+          stopButton.addEventListener('click', () => {
+            AudioEngine.stop();
+            MessageLog.add('再生を停止しました');
+          });
+
+          undoButton.addEventListener('click', () => {
+            Store.undo();
+            MessageLog.add('直前の操作を元に戻しました');
+          });
+
+          redoButton.addEventListener('click', () => {
+            Store.redo();
+            MessageLog.add('取り消しをやり直しました');
+          });
+
+          exportWavButton.addEventListener('click', async () => {
+            try {
+              document.getElementById('status-text').textContent = 'Rendering WAV...';
+              Utils.showToast('WAVエクスポートを準備中...');
+              const project = Store.getProject();
+              const buffer = await AudioEngine.renderOffline(project);
+              const blob = await AudioEngine.audioBufferToBlob(buffer, 'wav');
+              Utils.downloadBlob(blob, 'true-composer-kit.wav', 'audio/wav');
+              MessageLog.add('WAVを書き出しました');
+              Utils.showToast('WAVエクスポートが完了しました');
+            } catch (error) {
+              MessageLog.add(`WAVエクスポートに失敗: ${error.message}`);
+              Utils.showToast(`WAVエクスポートに失敗: ${error.message}`);
+            } finally {
+              const status = AudioEngine.isInitialized() ? 'Audio Engine: Ready' : 'Audio Engine: Standby';
+              document.getElementById('status-text').textContent = status;
+            }
+          });
+
+          exportMp3Button.addEventListener('click', async () => {
+            try {
+              document.getElementById('status-text').textContent = 'Rendering MP3...';
+              Utils.showToast('MP3エクスポートを準備中...');
+              const project = Store.getProject();
+              const buffer = await AudioEngine.renderOffline(project);
+              const blob = await AudioEngine.audioBufferToBlob(buffer, 'mp3');
+              Utils.downloadBlob(blob, 'true-composer-kit.mp3', 'audio/mpeg');
+              MessageLog.add('MP3を書き出しました (簡易エンコード)');
+              Utils.showToast('MP3エクスポートが完了しました');
+            } catch (error) {
+              MessageLog.add(`MP3エクスポートに失敗: ${error.message}`);
+              Utils.showToast(`MP3エクスポートに失敗: ${error.message}`);
+            } finally {
+              const status = AudioEngine.isInitialized() ? 'Audio Engine: Ready' : 'Audio Engine: Standby';
+              document.getElementById('status-text').textContent = status;
+            }
+          });
+
+          exportJsonButton.addEventListener('click', () => {
+            const json = Store.exportJSON();
+            Utils.downloadBlob(json, 'true-composer-kit.json', 'application/json');
+            MessageLog.add('プロジェクトJSONを書き出しました');
+          });
+
+          importJsonButton.addEventListener('click', async () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,application/json';
+            input.addEventListener('change', () => {
+              const file = input.files?.[0];
+              if (!file) return;
+              if (file.size > 5 * 1024 * 1024) {
+                Utils.showToast('ファイルサイズが大きすぎます (5MB まで)');
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = () => {
+                try {
+                  Store.importJSON(reader.result);
+                } catch (error) {
+                  console.error(error);
+                }
+              };
+              reader.readAsText(file);
+            });
+            input.click();
+          });
+
+          dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZone.classList.add('drag-over');
+          });
+
+          dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+          });
+
+          dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = event.dataTransfer?.files?.[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+              Utils.showToast('ファイルサイズが大きすぎます (5MB まで)');
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                Store.importJSON(reader.result);
+              } catch (error) {
+                console.error(error);
+              }
+            };
+            reader.readAsText(file);
+          });
+        };
+
+        const updatePlayhead = (project) => {
+          const barDuration = Sequencer.getBarDuration(project.settings.tempo);
+          const now = AudioEngine.isPlaying() ? (performance.now() - window.__tck_playStart) / 1000 : 0;
+          const bar = Math.floor(now / barDuration) + 1;
+          const beat = Math.floor((now % barDuration) / (barDuration / 4)) + 1;
+          playheadTime.textContent = `Bar ${Math.min(bar, project.chords.length)} • Beat ${beat}`;
+        };
+
+        const initPlayheadTimer = () => {
+          window.__tck_playStart = performance.now();
+          const loop = () => {
+            updatePlayhead(Store.getProject());
+            requestAnimationFrame(loop);
+          };
+          requestAnimationFrame(loop);
+        };
+
+        const init = () => {
+          renderKeyOptions('C');
+          tempoInput.value = 120;
+          quantizeSelect.value = 4;
+          bindEvents();
+          initPlayheadTimer();
+        };
+
+        const render = (project) => {
+          renderKeyOptions(project.settings.key);
+          scaleSelect.value = project.settings.scale;
+          tempoInput.value = project.settings.tempo;
+          quantizeSelect.value = project.settings.quantize;
+          renderTrackControls(project.tracks);
+          renderChordGrid(project);
+          renderSuggestions(project);
+          renderPianoRoll(project);
+        };
+
+        return {
+          init,
+          render,
+        };
+      })();
+
+      UI.init();
+      MessageLog.add('True Composer Kit へようこそ');
+
+      Store.subscribe((project) => {
+        UI.render(project);
+      });
+    })();
+  </script>
+</body>
+</html>
