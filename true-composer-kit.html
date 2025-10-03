@@ -385,7 +385,7 @@
       background: rgba(255, 255, 255, 0.03);
       border-radius: var(--radius-lg);
       border: 1px solid var(--grid-line);
-      height: 240px;
+      height: 360px;
       overflow: hidden;
     }
 
@@ -1838,10 +1838,13 @@
 
         const finalizeResize = () => {
           if (!activeResize) return;
-          const { noteId, currentStart, currentLength, initialStart, initialLength } = activeResize;
+          const { noteId, currentStart, currentLength, initialStart, initialLength, handle, pointerId } = activeResize;
           window.removeEventListener('pointermove', handleResizeMove);
           window.removeEventListener('pointerup', finalizeResize);
           window.removeEventListener('pointercancel', finalizeResize);
+          if (handle && typeof handle.releasePointerCapture === 'function' && pointerId != null) {
+            handle.releasePointerCapture(pointerId);
+          }
           activeResize = null;
           if (currentStart === initialStart && currentLength === initialLength) return;
           selectedNoteId = noteId;
@@ -1864,6 +1867,12 @@
           const noteEl = viewport.querySelector(`.note-token[data-id="${noteId}"]`);
           selectedNoteId = noteId;
           updateNoteSelection();
+          const handle = event.currentTarget;
+          const pointerId = event.pointerId;
+          if (handle && typeof handle.setPointerCapture === 'function') {
+            handle.setPointerCapture(pointerId);
+          }
+
           activeResize = {
             noteId,
             direction,
@@ -1875,6 +1884,8 @@
             beatWidth,
             quantizeUnit,
             noteEl,
+            handle,
+            pointerId,
           };
           window.addEventListener('pointermove', handleResizeMove);
           window.addEventListener('pointerup', finalizeResize);
